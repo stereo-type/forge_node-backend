@@ -81,8 +81,8 @@ services:
     restart: always
     volumes:
       - .:/app
-      - /app/node_modules
-      - /app/backend/node_modules
+      - backend_root_node_modules:/app/node_modules
+      - backend_node_modules_local:/app/backend/node_modules
     environment:
       <<: *common-variables
       NODE_ENV: ${NODE_ENV:-development}
@@ -127,8 +127,9 @@ services:
     restart: always
     volumes:
       - .:/app
-      - /app/node_modules
-      - /app/frontend/node_modules
+      - frontend_root_node_modules:/app/node_modules
+      - frontend_node_modules_local:/app/frontend/node_modules
+      - frontend_next_cache:/app/frontend/.next
     environment:
       <<: *common-variables
       NODE_ENV: ${NODE_ENV:-development}
@@ -157,6 +158,16 @@ volumes:
     name: ${APP_NAME:-forge-node}_db_data
   node_redis_data:
     name: ${APP_NAME:-forge-node}_redis_data
+  backend_root_node_modules:
+    name: ${APP_NAME:-forge-node}_backend_root_node_modules
+  backend_node_modules_local:
+    name: ${APP_NAME:-forge-node}_backend_node_modules_local
+  frontend_root_node_modules:
+    name: ${APP_NAME:-forge-node}_frontend_root_node_modules
+  frontend_node_modules_local:
+    name: ${APP_NAME:-forge-node}_frontend_node_modules_local
+  frontend_next_cache:
+    name: ${APP_NAME:-forge-node}_frontend_next_cache
 
 networks:
   node-network:

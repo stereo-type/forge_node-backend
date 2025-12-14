@@ -34,6 +34,8 @@ up:
 	@echo "Backend:  http://localhost:3001"
 	@echo "Health:   http://localhost:3001/health"
 
+recreate:
+	docker compose up -d --build --force-recreate
 # Остановка сервисов
 down:
 	docker compose down
