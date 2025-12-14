@@ -1,0 +1,165 @@
+x-common-variables: &common-variables
+  TZ: ${TIMEZONE:-Europe/Moscow}
+
+x-env-files: &env-files
+  env_file:
+    - .env
+    - .env.local
+
+services:
+  ###> PostgreSQL Database ###
+  node-db:
+    container_name: ${APP_NAME:-forge-node}-db
+    image: ${APP_NAME:-forge-node}-db
+    <<: *env-files
+    build:
+      context: .docker/db
+      args:
+        POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
+    restart: always
+    environment:
+      <<: *common-variables
+      POSTGRES_DB: ${POSTGRES_DB:-forge_node}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      POSTGRES_USER: ${POSTGRES_USER:-forge_node}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-forge_node}", "-U", "${POSTGRES_USER:-forge_node}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - node-network
+    volumes:
+      - node_db_data:/var/lib/postgresql/data:rw
+      - ./.docker/db/initdb:/docker-entrypoint-initdb.d
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ###> Redis Cache & Queue ###
+  node-redis:
+    container_name: ${APP_NAME:-forge-node}-redis
+    image: redis:7-alpine
+    <<: *env-files
+    restart: always
+    environment:
+      <<: *common-variables
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    networks:
+      - node-network
+    volumes:
+      - node_redis_data:/data
+    command: redis-server --appendonly yes
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ###> NestJS Backend ###
+  node-backend:
+    container_name: ${APP_NAME:-forge-node}-backend
+    image: ${APP_NAME:-forge-node}-backend
+    <<: *env-files
+    build:
+      context: .docker/backend
+      args:
+        NODE_VERSION: ${NODE_VERSION:-20}
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        USERNAME: ${USERNAME:-appuser}
+    user: "${UID:-1000}:${GID:-1000}"
+    restart: always
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      <<: *common-variables
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-forge_node}:${POSTGRES_PASSWORD:-secret}@${APP_NAME:-forge-node}-db:5432/${POSTGRES_DB:-forge_node}
+      REDIS_HOST: ${APP_NAME:-forge-node}-redis
+      REDIS_PORT: 6379
+      BACKEND_PORT: ${BACKEND_PORT:-3001}
+      FORGE_FLOW_API_URL: ${FORGE_FLOW_API_URL:-http://forge-nginx}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+    networks:
+      - node-network
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    depends_on:
+      node-db:
+        condition: service_healthy
+      node-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      timeout: 3s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ###> Next.js Frontend ###
+  node-frontend:
+    container_name: ${APP_NAME:-forge-node}-frontend
+    image: ${APP_NAME:-forge-node}-frontend
+    <<: *env-files
+    build:
+      context: .docker/frontend
+      args:
+        NODE_VERSION: ${NODE_VERSION:-20}
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        USERNAME: ${USERNAME:-appuser}
+    user: "${UID:-1000}:${GID:-1000}"
+    restart: always
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      <<: *common-variables
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:3001}
+      FRONTEND_PORT: ${FRONTEND_PORT:-3000}
+    networks:
+      - node-network
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - node-backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      timeout: 3s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  node_db_data:
+    name: ${APP_NAME:-forge-node}_db_data
+  node_redis_data:
+    name: ${APP_NAME:-forge-node}_redis_data
+
+networks:
+  node-network:
+    name: ${APP_NAME:-forge-node}-network
+    driver: bridge
