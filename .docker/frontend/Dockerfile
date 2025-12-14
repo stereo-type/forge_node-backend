@@ -1,40 +1,34 @@
 ARG NODE_VERSION=20
+ARG PORT=3000
 
 FROM node:${NODE_VERSION}-alpine
 
-# Install build dependencies
+# Установка зависимостей для сборки
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     wget
 
-# Create user with specified UID/GID
-ARG UID=1000
-ARG GID=1000
-ARG USERNAME=appuser
-
-RUN addgroup -g ${GID} ${USERNAME} && \
-    adduser -D -u ${UID} -G ${USERNAME} ${USERNAME}
-
-# Set working directory
+# Рабочая директория
 WORKDIR /app
 
-# Install pnpm globally
+# Глобальная установка pnpm
 RUN npm install -g pnpm
 
-# Copy package files (will be overridden by volume in dev)
-COPY --chown=${USERNAME}:${USERNAME} package*.json pnpm-lock.yaml* ./
+# Копирование файлов пакетов (корневые файлы для workspaces)
+COPY package.json pnpm-workspace.yaml ./
+# Копирование файлов пакетов frontend
+COPY frontend/package*.json ./frontend/
 
-# Switch to user
-USER ${USERNAME}
+# Установка зависимостей
+RUN pnpm install --filter @forge-node/frontend
 
-# Install dependencies (this layer will be cached)
-RUN pnpm install || true
+# Открытие порта
+EXPOSE ${PORT}
 
-# Expose frontend port
-EXPOSE 3000
+# Рабочая директория для frontend
+WORKDIR /app/frontend
 
-# Start development server
-CMD ["pnpm", "dev"]
-
+# Запуск в режиме разработки
+CMD ["pnpm", "run", "dev"]

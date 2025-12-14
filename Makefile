@@ -28,7 +28,7 @@ install:
 
 # Запуск сервисов
 up:
-	docker-compose up -d
+	docker compose up -d --build
 	@echo "Сервисы запущены!"
 	@echo "Frontend: http://localhost:3000"
 	@echo "Backend:  http://localhost:3001"
@@ -36,18 +36,18 @@ up:
 
 # Остановка сервисов
 down:
-	docker-compose down
+	docker compose down
 
 # Перезапуск сервисов
 restart: down up
 
 # Просмотр логов
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 # Сборка образов
 build:
-	docker-compose build
+	docker compose build
 
 # Очистка
 clean:
@@ -58,12 +58,12 @@ clean:
 
 # Shell в backend
 backend:
-	docker-compose exec node-backend sh
+	docker compose exec node-backend sh
 
 # Shell в frontend
 frontend:
-	docker-compose exec node-frontend sh
+	docker compose exec node-frontend sh
 
 # Shell в БД
 db:
-	docker-compose exec node-db psql -U forge_node -d forge_node
+	docker compose exec node-db psql -U forge_node -d forge_node

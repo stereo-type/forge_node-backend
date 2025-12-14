@@ -72,17 +72,17 @@ services:
     image: ${APP_NAME:-forge-node}-backend
     <<: *env-files
     build:
-      context: .docker/backend
+      context: .
+      dockerfile: .docker/backend/Dockerfile
       args:
         NODE_VERSION: ${NODE_VERSION:-20}
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        USERNAME: ${USERNAME:-appuser}
+        PORT: ${BACKEND_PORT:-3001}
     user: "${UID:-1000}:${GID:-1000}"
     restart: always
     volumes:
-      - ./backend:/app
+      - .:/app
       - /app/node_modules
+      - /app/backend/node_modules
     environment:
       <<: *common-variables
       NODE_ENV: ${NODE_ENV:-development}
@@ -118,18 +118,17 @@ services:
     image: ${APP_NAME:-forge-node}-frontend
     <<: *env-files
     build:
-      context: .docker/frontend
+      context: .
+      dockerfile: .docker/frontend/Dockerfile
       args:
         NODE_VERSION: ${NODE_VERSION:-20}
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        USERNAME: ${USERNAME:-appuser}
+        PORT: ${FRONTEND_PORT:-3000}
     user: "${UID:-1000}:${GID:-1000}"
     restart: always
     volumes:
-      - ./frontend:/app
+      - .:/app
       - /app/node_modules
-      - /app/.next
+      - /app/frontend/node_modules
     environment:
       <<: *common-variables
       NODE_ENV: ${NODE_ENV:-development}
