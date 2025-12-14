@@ -1,4 +1,4 @@
 [submodule "frontend"]
 	path = frontend
-	url = ./frontend
+	url = https://github.com/stereo-type/forge_node-frontend
 	branch = main
