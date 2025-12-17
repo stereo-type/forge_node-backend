@@ -18,6 +18,11 @@ help:
 	@echo "  frontend   Открыть shell в frontend контейнере"
 	@echo "  db         Открыть psql в базе данных"
 
+init:
+	pnpm install --filter @forge-node/backend
+	pnpm install --filter @forge-node/frontend
+
+
 # Установка зависимостей
 install:
 	@echo "Установка зависимостей backend..."
@@ -35,7 +40,7 @@ up:
 	@echo "Health:   http://localhost:3001/health"
 
 recreate:
-	docker compose up -d --build --force-recreate
+	docker compose up -d --build --force-recreate --remove-orphans
 # Остановка сервисов
 down:
 	docker compose down

@@ -28,8 +28,9 @@ RUN pnpm install --filter @forge-node/frontend
 EXPOSE ${PORT}
 
 # Создание директории .next с правами для всех пользователей
-# (права будут переопределены в compose.yaml через user)
-RUN mkdir -p /app/frontend/.next && \
+# Создаем все необходимые подпапки для Next.js
+RUN mkdir -p /app/frontend/.next/cache && \
+    mkdir -p /app/frontend/.next/trace && \
     chmod -R 777 /app/frontend/.next
 
 # Рабочая директория для frontend
