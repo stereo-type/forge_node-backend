@@ -9,23 +9,23 @@ x-env-files: &env-files
 services:
   ###> PostgreSQL Database ###
   node-db:
-    container_name: ${APP_NAME:-forge-node}-db
-    image: ${APP_NAME:-forge-node}-db
+    container_name: ${APP_NAME}-db
+    image: ${APP_NAME}-db
     <<: *env-files
     build:
       context: .docker/db
       args:
-        POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
+        POSTGRES_VERSION: ${POSTGRES_VERSION}
     restart: always
     environment:
       <<: *common-variables
-      POSTGRES_DB: ${POSTGRES_DB:-forge_node}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
-      POSTGRES_USER: ${POSTGRES_USER:-forge_node}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "${POSTGRES_PORT}:5432"
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-forge_node}", "-U", "${POSTGRES_USER:-forge_node}"]
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}"]
       timeout: 5s
       retries: 5
       start_period: 60s
@@ -42,7 +42,7 @@ services:
 
   ###> Redis Cache & Queue ###
   node-redis:
-    container_name: ${APP_NAME:-forge-node}-redis
+    container_name: ${APP_NAME}-redis
     image: redis:7-alpine
     <<: *env-files
     restart: always
@@ -68,15 +68,15 @@ services:
 
   ###> NestJS Backend ###
   node-backend:
-    container_name: ${APP_NAME:-forge-node}-backend
-    image: ${APP_NAME:-forge-node}-backend
+    container_name: ${APP_NAME}-backend
+    image: ${APP_NAME}-backend
     <<: *env-files
     build:
       context: .
       dockerfile: .docker/backend/Dockerfile
       args:
-        NODE_VERSION: ${NODE_VERSION:-20}
-        PORT: ${BACKEND_PORT:-3001}
+        NODE_VERSION: ${NODE_VERSION}
+        PORT: ${BACKEND_PORT}
     user: "${UID:-1000}:${GID:-1000}"
     restart: always
     volumes:
@@ -87,12 +87,12 @@ services:
     environment:
       <<: *common-variables
       NODE_ENV: ${NODE_ENV:-development}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-forge_node}:${POSTGRES_PASSWORD:-secret}@${APP_NAME:-forge-node}-db:5432/${POSTGRES_DB:-forge_node}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${APP_NAME}-db:5432/${POSTGRES_DB}
       REDIS_HOST: ${APP_NAME:-forge-node}-redis
       REDIS_PORT: 6379
-      BACKEND_PORT: ${BACKEND_PORT:-3001}
-      FORGE_FLOW_API_URL: ${FORGE_FLOW_API_URL:-http://forge-nginx}
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      BACKEND_PORT: ${BACKEND_PORT}
+      FORGE_FLOW_API_URL: ${FORGE_FLOW_API_URL}
+      JWT_SECRET: ${JWT_SECRET}
     networks:
       - node-network
     ports:
@@ -115,15 +115,15 @@ services:
 
   ###> Next.js Frontend ###
   node-frontend:
-    container_name: ${APP_NAME:-forge-node}-frontend
-    image: ${APP_NAME:-forge-node}-frontend
+    container_name: ${APP_NAME}-frontend
+    image: ${APP_NAME}-frontend
     <<: *env-files
     build:
       context: .
       dockerfile: .docker/frontend/Dockerfile
       args:
-        NODE_VERSION: ${NODE_VERSION:-20}
-        PORT: ${FRONTEND_PORT:-3000}
+        NODE_VERSION: ${NODE_VERSION}
+        PORT: ${FRONTEND_PORT}
     user: "${UID:-1000}:${GID:-1000}"
     restart: always
     volumes:
@@ -140,7 +140,7 @@ services:
     networks:
       - node-network
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT}:3000"
     depends_on:
       - node-backend
     healthcheck:
@@ -156,11 +156,11 @@ services:
 
 volumes:
   node_db_data:
-    name: ${APP_NAME:-forge-node}_db_data
+    name: ${APP_NAME}_db_data
   node_redis_data:
-    name: ${APP_NAME:-forge-node}_redis_data
+    name: ${APP_NAME}_redis_data
 
 networks:
   node-network:
-    name: ${APP_NAME:-forge-node}-network
+    name: ${APP_NAME}-network
     driver: bridge

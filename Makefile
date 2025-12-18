@@ -1,22 +1,18 @@
-.PHONY: help install up down restart logs build clean
+# Подключаем переменные из .env
+include .env
+-include .env.local
+export
 
-# Цель по умолчанию
-help:
-	@echo "Forge Node - Команды для разработки"
-	@echo ""
-	@echo "Использование: make [цель]"
-	@echo ""
-	@echo "Цели:"
-	@echo "  install    Установить зависимости для backend и frontend"
-	@echo "  up         Запустить все Docker сервисы"
-	@echo "  down       Остановить все Docker сервисы"
-	@echo "  restart    Перезапустить все Docker сервисы"
-	@echo "  logs       Просмотр логов всех сервисов"
-	@echo "  build      Собрать Docker образы"
-	@echo "  clean      Удалить контейнеры, volumes и зависимости"
-	@echo "  backend    Открыть shell в backend контейнере"
-	@echo "  frontend   Открыть shell в frontend контейнере"
-	@echo "  db         Открыть psql в базе данных"
+# Цвета для вывода
+GREEN  := $(shell tput -Txterm setaf 2)
+YELLOW := $(shell tput -Txterm setaf 3)
+RESET  := $(shell tput -Txterm sgr0)
+
+.PHONY: help
+help: ## Показать список доступных команд
+	@echo "Доступные команды:"
+	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = " ## "}; {split($$1, a, ":"); printf "  ${YELLOW}%-30s${RESET} %s\n", a[1], $$2}'
+
 
 init:
 	pnpm install --filter @forge-node/backend
@@ -51,6 +47,14 @@ restart: down up
 # Просмотр логов
 logs:
 	docker compose logs -f
+
+# Логи только backend
+logs-backend:
+	docker compose logs -f node-backend
+
+# Статический анализ backend (ESLint + TypeScript)
+backend-analyze: ## Статический анализ backend (ESLint + tsc --noEmit)
+	cd backend && pnpm lint && pnpm run type-check
 
 # Сборка образов
 build:

@@ -402,9 +402,6 @@ export class HealthController {
 - `.docker/db/initdb:/docker-entrypoint-initdb.d` - init скрипты
 
 **Environment**:
-- `POSTGRES_DB=forge_node`
-- `POSTGRES_USER=forge_node`
-- `POSTGRES_PASSWORD=secret`
 - `TZ=Europe/Moscow`
 
 **Health check**: `pg_isready -d forge_node -U forge_node`
@@ -430,11 +427,9 @@ export class HealthController {
 
 **Environment**:
 - `NODE_ENV=development`
-- `DATABASE_URL=postgresql://forge_node:secret@forge-node-db:5432/forge_node`
 - `REDIS_HOST=forge-node-redis`
 - `REDIS_PORT=6379`
 - `BACKEND_PORT=3001`
-- `JWT_SECRET=change-me-in-production`
 - `FORGE_FLOW_API_URL=http://forge-nginx`
 - `LICENSE_KEY=` (пустой для demo режима)
 - `SUBSCRIPTION_LEVEL=demo` (demo/free/pro/enterprise)
@@ -478,70 +473,6 @@ export class HealthController {
 
 Файлы конфигурации: `.env`, `.env.local` (приоритетнее)
 
-### Основные переменные
-
-```env
-# === Приложение ===
-APP_NAME=forge-node                # Имя приложения (префикс контейнеров)
-NODE_ENV=development               # development | production | test
-TZ=Europe/Moscow                   # Временная зона
-
-# === Порты ===
-POSTGRES_PORT=5433                 # Внешний порт PostgreSQL
-REDIS_PORT=6380                    # Внешний порт Redis
-BACKEND_PORT=3001                  # Порт Backend API
-FRONTEND_PORT=3000                 # Порт Frontend
-
-# === PostgreSQL ===
-POSTGRES_VERSION=16                # Версия PostgreSQL
-POSTGRES_DB=forge_node             # Имя базы данных
-POSTGRES_USER=forge_node           # Пользователь БД
-POSTGRES_PASSWORD=secret           # Пароль БД (ИЗМЕНИТЬ в production!)
-
-# === Database URL ===
-DATABASE_URL=postgresql://forge_node:secret@localhost:5433/forge_node
-
-# === Redis ===
-REDIS_HOST=localhost               # Хост Redis (localhost вне Docker)
-REDIS_PORT=6380                    # Порт Redis
-
-# === JWT Authentication ===
-JWT_SECRET=change-me-in-production # JWT секрет (минимум 32 символа!)
-JWT_EXPIRES_IN=7d                  # Время жизни JWT токена
-
-# === Forge Flow Integration (License Server) ===
-FORGE_FLOW_API_URL=http://forge-nginx    # URL сервера управления лицензиями
-FORGE_FLOW_API_TOKEN=                    # Токен для идентификации ноды
-LICENSE_KEY=                              # Лицензионный ключ продукта
-SUBSCRIPTION_LEVEL=demo                   # demo | free | pro | enterprise
-
-# === CORS ===
-CORS_ORIGIN=*                      # Разрешённые origins (* для dev)
-
-# === Frontend API ===
-NEXT_PUBLIC_API_URL=http://localhost:3001   # URL Backend API
-NEXT_PUBLIC_WS_URL=ws://localhost:3001      # URL WebSocket
-
-# === Docker User (Linux/Mac) ===
-UID=1000                           # User ID (для прав доступа)
-GID=1000                           # Group ID
-
-# === Node.js ===
-NODE_VERSION=20                    # Версия Node.js для Docker
-```
-
-### Переменные для Production
-
-**Обязательно изменить**:
-- `POSTGRES_PASSWORD` - сильный пароль
-- `JWT_SECRET` - случайная строка минимум 32 символа
-- `LICENSE_KEY` - лицензионный ключ продукта
-- `FORGE_FLOW_API_TOKEN` - токен для регистрации ноды в управленке
-- `SUBSCRIPTION_LEVEL` - уровень подписки (free/pro/enterprise)
-- `CORS_ORIGIN` - конкретные домены вместо `*`
-- `NODE_ENV=production`
-
----
 
 ## 🚀 Команды для работы
 
