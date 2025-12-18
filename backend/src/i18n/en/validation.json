@@ -1,0 +1,26 @@
+{
+  "isEmail": "Field \"{property}\" must be a valid email address",
+  "isNotEmpty": "Field \"{property}\" should not be empty",
+  "isString": "Field \"{property}\" must be a string",
+  "isNumber": "Field \"{property}\" must be a number",
+  "isBoolean": "Field \"{property}\" must be a boolean value",
+  "isArray": "Field \"{property}\" must be an array",
+  "isDate": "Field \"{property}\" must be a date",
+  "isUUID": "Field \"{property}\" must be a valid UUID",
+  "minLength": "Field \"{property}\" must be at least {constraint1} characters",
+  "maxLength": "Field \"{property}\" must be no more than {constraint1} characters",
+  "min": "Field \"{property}\" must not be less than {constraint1}",
+  "max": "Field \"{property}\" must not be greater than {constraint1}",
+  "matches": "Field \"{property}\" must match pattern {constraint1}",
+  "isEnum": "Field \"{property}\" must be a valid enum value",
+  "isIn": "Field \"{property}\" must be one of: {constraint1}",
+  "isNotIn": "Field \"{property}\" must not be one of: {constraint1}",
+  "isDefined": "Field \"{property}\" must be defined",
+  "isOptional": "Field \"{property}\" is optional",
+  "isInt": "Field \"{property}\" must be an integer",
+  "isPositive": "Field \"{property}\" must be a positive number",
+  "isNegative": "Field \"{property}\" must be a negative number",
+  "minDate": "Field \"{property}\" must not be earlier than {constraint1}",
+  "maxDate": "Field \"{property}\" must not be later than {constraint1}"
+}
+

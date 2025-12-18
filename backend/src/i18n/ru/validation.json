@@ -1,0 +1,26 @@
+{
+  "isEmail": "Поле \"{property}\" должно быть валидным email адресом",
+  "isNotEmpty": "Поле \"{property}\" не должно быть пустым",
+  "isString": "Поле \"{property}\" должно быть строкой",
+  "isNumber": "Поле \"{property}\" должно быть числом",
+  "isBoolean": "Поле \"{property}\" должно быть булевым значением",
+  "isArray": "Поле \"{property}\" должно быть массивом",
+  "isDate": "Поле \"{property}\" должно быть датой",
+  "isUUID": "Поле \"{property}\" должно быть валидным UUID",
+  "minLength": "Поле \"{property}\" должно быть не менее {constraint1} символов",
+  "maxLength": "Поле \"{property}\" должно быть не более {constraint1} символов",
+  "min": "Поле \"{property}\" не должно быть меньше {constraint1}",
+  "max": "Поле \"{property}\" не должно быть больше {constraint1}",
+  "matches": "Поле \"{property}\" должно соответствовать шаблону {constraint1}",
+  "isEnum": "Поле \"{property}\" должно быть одним из допустимых значений",
+  "isIn": "Поле \"{property}\" должно быть одним из: {constraint1}",
+  "isNotIn": "Поле \"{property}\" не должно быть одним из: {constraint1}",
+  "isDefined": "Поле \"{property}\" должно быть определено",
+  "isOptional": "Поле \"{property}\" является опциональным",
+  "isInt": "Поле \"{property}\" должно быть целым числом",
+  "isPositive": "Поле \"{property}\" должно быть положительным числом",
+  "isNegative": "Поле \"{property}\" должно быть отрицательным числом",
+  "minDate": "Поле \"{property}\" не должно быть раньше {constraint1}",
+  "maxDate": "Поле \"{property}\" не должно быть позже {constraint1}"
+}
+

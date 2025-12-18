@@ -1,0 +1,14 @@
+{
+  "email": "Email",
+  "password": "Пароль",
+  "firstName": "Имя",
+  "lastName": "Фамилия",
+  "refreshToken": "Токен обновления",
+  "name": "Название",
+  "description": "Описание",
+  "title": "Заголовок",
+  "status": "Статус",
+  "createdAt": "Дата создания",
+  "updatedAt": "Дата обновления"
+}
+

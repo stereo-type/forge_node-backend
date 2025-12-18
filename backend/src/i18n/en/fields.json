@@ -1,0 +1,14 @@
+{
+  "email": "Email",
+  "password": "Password",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "refreshToken": "Refresh Token",
+  "name": "Name",
+  "description": "Description",
+  "title": "Title",
+  "status": "Status",
+  "createdAt": "Created At",
+  "updatedAt": "Updated At"
+}
+

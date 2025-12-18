@@ -122,6 +122,7 @@ Forge Flow выступает как управляющий сервер (упр
 | **IORedis** | 5.4.2 | Клиент Redis |
 | **class-validator** | 0.14.1 | Валидация DTO |
 | **class-transformer** | 0.5.1 | Трансформация данных |
+| **nestjs-i18n** | latest | Интернационализация (переводы) |
 | **bcrypt** | 5.1.1 | Хеширование паролей |
 | **uuid** | 11.0.3 | Генерация UUID |
 
@@ -740,12 +741,103 @@ app.useGlobalPipes(
 );
 ```
 
+### Интернационализация (i18n)
+
+Проект использует `nestjs-i18n` для локализации (аналог Symfony Translation):
+
+**Настройка в app.module.ts**:
+```typescript
+import { I18nModule, AcceptLanguageResolver, QueryResolver, HeaderResolver } from 'nestjs-i18n';
+
+I18nModule.forRoot({
+  fallbackLanguage: 'en',
+  loaderOptions: {
+    path: path.join(__dirname, '/i18n/'),
+    watch: true,
+  },
+  resolvers: [
+    { use: QueryResolver, options: ['lang'] }, // ?lang=ru
+    AcceptLanguageResolver,                     // Accept-Language: ru
+    new HeaderResolver(['x-lang']),             // x-lang: ru
+  ],
+})
+```
+
+**Структура переводов** (`backend/src/i18n/`):
+```
+i18n/
+├── ru/
+│   ├── validation.json    # Переводы ошибок валидации
+│   ├── errors.json        # Переводы системных ошибок
+│   └── fields.json        # Переводы названий полей
+└── en/
+    ├── validation.json
+    ├── errors.json
+    └── fields.json
+```
+
+**Использование в коде**:
+```typescript
+// В сервисе
+constructor(private readonly i18n: I18nService) {}
+
+async someMethod() {
+  const lang = I18nContext.current()?.lang || 'ru';
+  const message = await this.i18n.translate('errors.USER_ALREADY_EXISTS', { lang });
+  throw new ConflictException(message);
+}
+
+// В контроллере через декоратор
+async create(@I18n() i18n: I18nContext) {
+  const message = i18n.t('errors.VALIDATION_ERROR');
+}
+```
+
+**Как клиент указывает язык**:
+- Query: `?lang=ru`
+- Header: `Accept-Language: ru`
+- Header: `x-lang: ru`
+
+### Кастомная обработка ошибок валидации
+
+Проект использует `I18nValidationExceptionFilter` с автоматическими переводами:
+
+```typescript
+// main.ts
+import { I18nValidationPipe } from 'nestjs-i18n';
+import { I18nValidationExceptionFilter } from '@common/filters';
+
+app.useGlobalFilters(new I18nValidationExceptionFilter());
+app.useGlobalPipes(new I18nValidationPipe({ ... }));
+```
+
+**Формат ответа при ошибках валидации**:
+```json
+{
+  "statusCode": 400,
+  "error": "Ошибка валидации данных",
+  "message": "Ошибка валидации данных",
+  "errors": {
+    "email": ["Email должен быть валидным email адресом"],
+    "password": ["Пароль должно быть не менее 6 символов"]
+  },
+  "timestamp": "2024-12-18T10:30:45.123Z"
+}
+```
+
+**Преимущества**:
+- Ошибки сгруппированы по полям (удобно для фронтенда)
+- Автоматический перевод на основе языка клиента (как в Symfony)
+- Переводы в JSON файлах (легко редактировать)
+- Timestamp для отладки
+- Легко привязать к полям формы на фронте
+
 ### TypeORM автосинхронизация (только в dev)
 
 В режиме development TypeORM автоматически синхронизирует схему БД с entities:
 
 ```typescript
-synchronize: configService.get('NODE_ENV') === 'development',
+synchronize: configService.get('NODE_ENV') === 'development'
 ```
 
 **Важно**: В production используются миграции!
@@ -912,12 +1004,52 @@ async onApplicationBootstrap() {
 6. **BullMQ используется вместо Bull** для очередей
 7. **Socket.io для WebSocket**, а не ws библиотека
 8. **Валидация через class-validator** в DTO классах
-9. **PostgreSQL порт 5433**, а не стандартный 5432 (для избежания конфликтов)
-10. **Redis порт 6380**, а не стандартный 6379
-11. **Проект имеет систему подписок** - Demo/Free/Pro/Enterprise с разными ограничениями
-12. **Forge Flow - это управленка**, а не воркер сервер (регистрация, подписки, лицензии)
-13. **Forge Node полностью самостоятельный** - выполняет workflow локально, не получает задания извне
-14. **Функционал ограничивается через Guards** в зависимости от уровня подписки
+9. **Все DTO ОБЯЗАТЕЛЬНО с декораторами @ApiProperty/@ApiPropertyOptional** для Swagger документации
+10. **PostgreSQL порт 5433**, а не стандартный 5432 (для избежания конфликтов)
+11. **Redis порт 6380**, а не стандартный 6379
+12. **Проект имеет систему подписок** - Demo/Free/Pro/Enterprise с разными ограничениями
+13. **Forge Flow - это управленка**, а не воркер сервер (регистрация, подписки, лицензии)
+14. **Forge Node полностью самостоятельный** - выполняет workflow локально, не получает задания извне
+15. **Функционал ограничивается через Guards** в зависимости от уровня подписки
+16. **ОБЯЗАТЕЛЬНО использовать алиасы путей TypeScript** - `@common/*`, `@modules/*`, `@config/*` вместо относительных путей
+17. **Используется nestjs-i18n для переводов** - как в Symfony, переводы в JSON файлах, автоматическая локализация
+18. **I18nValidationExceptionFilter возвращает ошибки с ключами полей** с автоматическим переводом для удобства фронтенда
+
+### Алиасы путей TypeScript
+
+В проекте настроены алиасы путей в `backend/tsconfig.json`:
+
+```json
+"paths": {
+  "@/*": ["src/*"],                 // Корень src/
+  "@modules/*": ["src/modules/*"],  // Модули приложения
+  "@common/*": ["src/common/*"],    // Общий код (guards, filters, decorators, interceptors)
+  "@config/*": ["src/config/*"]     // Конфигурация
+}
+```
+
+**✅ Правильные импорты** (ВСЕГДА используй так):
+```typescript
+// Импорт из common
+import { ValidationExceptionFilter } from '@common/filters';
+import { JwtAuthGuard } from '@common/guards';
+import { CurrentUser } from '@common/decorators';
+
+// Импорт модулей
+import { AuthService } from '@modules/auth/auth.service';
+import { UserEntity } from '@modules/users/entities/user.entity';
+
+// Импорт конфигурации
+import { DatabaseConfig } from '@config/database.config';
+```
+
+**❌ Неправильные импорты** (НИКОГДА не используй относительные пути):
+```typescript
+// ❌ Плохо - относительные пути
+import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
+import { ValidationExceptionFilter } from '../../common/filters';
+import { AuthService } from '../auth/auth.service';
+```
 
 ### Паттерны кода:
 
@@ -937,20 +1069,35 @@ export class ResourceController {
 }
 ```
 
-**NestJS DTOs**:
+**NestJS DTOs** (с Swagger документацией):
 ```typescript
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateResourceDto {
+  @ApiProperty({
+    description: 'Название ресурса',
+    example: 'Мой ресурс',
+  })
   @IsString()
   @IsNotEmpty()
   name: string;
   
+  @ApiPropertyOptional({
+    description: 'Описание ресурса',
+    example: 'Подробное описание ресурса',
+  })
   @IsString()
   @IsOptional()
   description?: string;
 }
 ```
+
+**Важно**: 
+- Все DTO **ОБЯЗАТЕЛЬНО** должны иметь декораторы `@ApiProperty()` или `@ApiPropertyOptional()` для генерации Swagger документации
+- Используй `@ApiProperty()` для обязательных полей
+- Используй `@ApiPropertyOptional()` для необязательных полей (с `@IsOptional()`)
+- Всегда указывай `description` и `example` для понятной документации API
 
 **TypeORM Entities**:
 ```typescript
@@ -1021,7 +1168,7 @@ export class LLMController {
 **Subscription Entity**:
 ```typescript
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { User } from '../users/user.entity';
+import { User } from '@modules/users/entities/user.entity';
 
 export enum SubscriptionLevel {
   DEMO = 'demo',
@@ -1061,6 +1208,12 @@ export class Subscription {
 ---
 
 *Документ создан: 2024-12-14*  
-*Версия документа: 1.1.0*  
-*Последнее обновление: 2024-12-14* - Добавлена информация о системе подписок и монетизации
+*Версия документа: 1.3.0*  
+*Последнее обновление: 2024-12-18* - Добавлена информация о:
+- Обязательном использовании алиасов путей TypeScript (@common, @modules, @config)
+- Обязательном использовании @ApiProperty/@ApiPropertyOptional в DTO для Swagger
+- Интернационализации через nestjs-i18n (как в Symfony)
+- Структуре переводов в JSON файлах (validation, errors, fields)
+- Кастомной обработке ошибок валидации с автоматической локализацией (I18nValidationExceptionFilter)
+- Формате ошибок валидации с группировкой по полям для удобства фронтенда
 

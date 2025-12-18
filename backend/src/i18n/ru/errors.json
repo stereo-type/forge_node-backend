@@ -1,0 +1,14 @@
+{
+  "VALIDATION_ERROR": "Ошибка валидации данных",
+  "UNAUTHORIZED": "Необходима авторизация",
+  "FORBIDDEN": "Доступ запрещен",
+  "NOT_FOUND": "Ресурс не найден",
+  "INTERNAL_SERVER_ERROR": "Внутренняя ошибка сервера",
+  "BAD_REQUEST": "Некорректный запрос",
+  "CONFLICT": "Конфликт данных",
+  "USER_ALREADY_EXISTS": "Пользователь с таким email уже существует",
+  "INVALID_CREDENTIALS": "Неверные учетные данные",
+  "INVALID_TOKEN": "Неверный или истекший токен",
+  "TOKEN_EXPIRED": "Токен истёк"
+}
+

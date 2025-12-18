@@ -27,6 +27,13 @@ install:
 	cd frontend && pnpm install
 	@echo "Готово!"
 
+# Очистка
+clean:
+	docker-compose down -v
+	rm -rf backend/node_modules backend/dist
+	rm -rf frontend/node_modules frontend/.next
+	@echo "Очищено!"
+
 # Запуск сервисов
 up:
 	docker compose up -d --build
@@ -60,21 +67,14 @@ backend-analyze: ## Статический анализ backend (ESLint + tsc --
 build:
 	docker compose build
 
-# Очистка
-clean:
-	docker-compose down -v
-	rm -rf backend/node_modules backend/dist
-	rm -rf frontend/node_modules frontend/.next
-	@echo "Очищено!"
-
 # Shell в backend
-backend:
+shell-backend:
 	docker compose exec node-backend sh
 
 # Shell в frontend
-frontend:
+shell-frontend:
 	docker compose exec node-frontend sh
 
 # Shell в БД
-db:
+shell-db:
 	docker compose exec node-db psql -U forge_node -d forge_node
